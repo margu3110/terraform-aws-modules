@@ -28,8 +28,10 @@ module "networking" {
 ```
 
 ## Outputs
-Output	Description
-vpc_id	VPC identifier
-public_subnet_ids	Public subnet IDs
-internet_gateway_id	Internet Gateway ID
-public_route_table_id	Public route table ID
+
+| Output                | Description           |
+| --------------------- | --------------------- |
+| vpc_id                | VPC identifier        |
+| public_subnet_ids     | Public subnet IDs     |
+| internet_gateway_id   | Internet Gateway ID   |
+| public_route_table_id | Public route table ID |
