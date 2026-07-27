@@ -28,6 +28,9 @@ jobs:
         with:
           terraform_version: 1.15.8
 
+      - name: Show Terraform version
+        run: terraform version
+
       - name: Terraform Format
         run: terraform fmt -check -recursive
 
