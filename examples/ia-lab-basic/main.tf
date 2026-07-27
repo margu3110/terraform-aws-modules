@@ -1,5 +1,5 @@
 module "networking" {
-  source = "../../"
+  source = "../../modules/networking"
   name = "example"
   vpc_cidr = "10.0.0.0/16"
 
