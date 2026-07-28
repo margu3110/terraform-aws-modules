@@ -17,7 +17,7 @@ variable "ingress_rules" {
     description = string
     from_port   = number
     to_port     = number
-    protocol    = string
+    ip_protocol = string
     cidr_ipv4   = string
   }))
 
@@ -31,7 +31,7 @@ variable "egress_rules" {
     description = string
     from_port   = number
     to_port     = number
-    protocol    = string
+    ip_protocol = string
     cidr_ipv4   = string
   }))
 
