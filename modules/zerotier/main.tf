@@ -12,6 +12,13 @@ resource "aws_ssm_association" "zerotier" {
 
       set -e
 
+      if command -v cloud-init >/dev/null 2>&1; then
+          echo "Waiting for cloud-init to finish..."
+          cloud-init status --wait
+      fi
+
+      echo "Cloud-init completed."
+      
       echo "=== ZeroTier installation started ==="
       date
 
