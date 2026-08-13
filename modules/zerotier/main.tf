@@ -51,6 +51,14 @@ resource "aws_ssm_association" "zerotier" {
       zerotier-cli -v
 
       echo
+      echo "Joining ZeroTier network..."
+      zerotier-cli join ${var.network_id}
+
+      echo
+      echo "Checking ZeroTier networks..."
+      zerotier-cli listnetworks
+
+      echo
       echo "Checking ZeroTier status..."
 
       zerotier-cli info
