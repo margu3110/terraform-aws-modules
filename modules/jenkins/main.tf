@@ -17,33 +17,37 @@ resource "aws_ssm_association" "jenkins" {
       date
 
       echo "Waiting for cloud-init to finish..."
+
       if command -v cloud-init >/dev/null 2>&1; then
         cloud-init status --wait
       fi
 
-      echo "Waiting for APT locks..."
+      wait_for_apt() {
+        echo "Waiting for APT/dpkg to become available..."
 
-      for i in {1..60}; do
-        if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 \
-          && ! fuser /var/lib/apt/lists/lock >/dev/null 2>&1 \
-          && ! fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
-          echo "APT is available."
-          break
-        fi
+        for i in {1..60}; do
+          if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 \
+            && ! fuser /var/lib/dpkg/lock >/dev/null 2>&1 \
+            && ! fuser /var/lib/apt/lists/lock >/dev/null 2>&1 \
+            && ! fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
+            echo "APT is available."
+            return 0
+          fi
 
-        echo "APT is locked, waiting... ($i/60)"
-        sleep 5
-      done
+          echo "APT is busy, waiting... ($i/60)"
+          sleep 5
+        done
 
-      if fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 \
-        || fuser /var/lib/apt/lists/lock >/dev/null 2>&1 \
-        || fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
         echo "ERROR: APT is still locked after waiting."
-        exit 1
-      fi
+        return 1
+      }
 
       echo "Installing Java 21..."
+
+      wait_for_apt
       apt-get update
+
+      wait_for_apt
       apt-get install -y fontconfig openjdk-21-jre
 
       echo "Installing Jenkins repository..."
@@ -60,7 +64,11 @@ resource "aws_ssm_association" "jenkins" {
         > /etc/apt/sources.list.d/jenkins.list
 
       echo "Installing Jenkins..."
+
+      wait_for_apt
       apt-get update
+
+      wait_for_apt
       apt-get install -y jenkins
 
       echo "Configuring Jenkins port..."
