@@ -29,48 +29,48 @@ resource "aws_ssm_association" "jenkins" {
         JENKINS_DEVICE="${var.jenkins_data_device}"
         JENKINS_MOUNT="${var.jenkins_data_mount_point}"
 
-        echo "Waiting for ${JENKINS_DEVICE}..."
+        echo "Waiting for $${JENKINS_DEVICE}..."
 
         for i in {1..60}; do
-          if [ -b "${JENKINS_DEVICE}" ]; then
-            echo "Device ${JENKINS_DEVICE} is available."
+          if [ -b "$${JENKINS_DEVICE}" ]; then
+            echo "Device $${JENKINS_DEVICE} is available."
             break
           fi
 
-          echo "Waiting for ${JENKINS_DEVICE}... ($i/60)"
+          echo "Waiting for $${JENKINS_DEVICE}... ($$i/60)"
           sleep 2
         done
 
-        if [ ! -b "${JENKINS_DEVICE}" ]; then
-          echo "ERROR: ${JENKINS_DEVICE} did not become available."
+        if [ ! -b "$${JENKINS_DEVICE}" ]; then
+          echo "ERROR: $${JENKINS_DEVICE} did not become available."
           exit 1
         fi
 
         echo "Checking filesystem..."
 
-        if ! blkid "${JENKINS_DEVICE}" >/dev/null 2>&1; then
+        if ! blkid "$${JENKINS_DEVICE}" >/dev/null 2>&1; then
           echo "No filesystem detected. Creating ext4 filesystem..."
 
-          mkfs.ext4 -F "${JENKINS_DEVICE}"
+          mkfs.ext4 -F "$${JENKINS_DEVICE}"
         else
           echo "Filesystem already exists."
         fi
 
-        mkdir -p "${JENKINS_MOUNT}"
+        mkdir -p "$${JENKINS_MOUNT}"
 
-        UUID=$(blkid -s UUID -o value "${JENKINS_DEVICE}")
+        UUID=$(blkid -s UUID -o value "$${JENKINS_DEVICE}")
 
-        if ! grep -q "UUID=${UUID}" /etc/fstab; then
+        if ! grep -q "UUID=$${UUID}" /etc/fstab; then
           echo "Adding Jenkins volume to /etc/fstab..."
 
-          echo "UUID=${UUID} ${JENKINS_MOUNT} ext4 defaults,nofail 0 2" \
+          echo "UUID=$${UUID} $${JENKINS_MOUNT} ext4 defaults,nofail 0 2" \
             >> /etc/fstab
         fi
 
-        mountpoint -q "${JENKINS_MOUNT}" || mount "${JENKINS_MOUNT}"
+        mountpoint -q "$${JENKINS_MOUNT}" || mount "$${JENKINS_MOUNT}"
 
         echo "Persistent Jenkins storage mounted:"
-        df -h "${JENKINS_MOUNT}"
+        df -h "$${JENKINS_MOUNT}"
 
       fi
 
