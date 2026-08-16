@@ -22,6 +22,59 @@ resource "aws_ssm_association" "jenkins" {
         cloud-init status --wait
       fi
 
+      if [ -n "${var.jenkins_data_device}" ]; then
+
+        echo "=== Configuring persistent Jenkins storage ==="
+
+        JENKINS_DEVICE="${var.jenkins_data_device}"
+        JENKINS_MOUNT="${var.jenkins_data_mount_point}"
+
+        echo "Waiting for ${JENKINS_DEVICE}..."
+
+        for i in {1..60}; do
+          if [ -b "${JENKINS_DEVICE}" ]; then
+            echo "Device ${JENKINS_DEVICE} is available."
+            break
+          fi
+
+          echo "Waiting for ${JENKINS_DEVICE}... ($i/60)"
+          sleep 2
+        done
+
+        if [ ! -b "${JENKINS_DEVICE}" ]; then
+          echo "ERROR: ${JENKINS_DEVICE} did not become available."
+          exit 1
+        fi
+
+        echo "Checking filesystem..."
+
+        if ! blkid "${JENKINS_DEVICE}" >/dev/null 2>&1; then
+          echo "No filesystem detected. Creating ext4 filesystem..."
+
+          mkfs.ext4 -F "${JENKINS_DEVICE}"
+        else
+          echo "Filesystem already exists."
+        fi
+
+        mkdir -p "${JENKINS_MOUNT}"
+
+        UUID=$(blkid -s UUID -o value "${JENKINS_DEVICE}")
+
+        if ! grep -q "UUID=${UUID}" /etc/fstab; then
+          echo "Adding Jenkins volume to /etc/fstab..."
+
+          echo "UUID=${UUID} ${JENKINS_MOUNT} ext4 defaults,nofail 0 2" \
+            >> /etc/fstab
+        fi
+
+        mountpoint -q "${JENKINS_MOUNT}" || mount "${JENKINS_MOUNT}"
+
+        echo "Persistent Jenkins storage mounted:"
+        df -h "${JENKINS_MOUNT}"
+
+      fi
+
+
       wait_for_apt() {
         echo "Waiting for APT/dpkg to become available..."
 

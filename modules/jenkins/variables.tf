@@ -8,3 +8,15 @@ variable "jenkins_port" {
   type        = number
   default     = 8080
 }
+
+variable "jenkins_data_device" {
+  description = "Block device containing persistent Jenkins data."
+  type        = string
+  default     = ""
+}
+
+variable "jenkins_data_mount_point" {
+  description = "Mount point for persistent Jenkins data."
+  type        = string
+  default     = "/var/lib/jenkins"
+}
